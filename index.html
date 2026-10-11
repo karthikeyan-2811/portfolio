@@ -15,27 +15,15 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-snap-type:none}
 body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-weight:300;line-height:1.65;overflow-x:hidden}
-body.locked{overflow:hidden}
 a{color:inherit;text-decoration:none}
 
 /* ---------- fixed cinematic background ---------- */
 #bg{position:fixed;inset:0;z-index:-3;background:#000 url(assets/poster.jpg) center/cover}
-#bg video{width:100%;height:100%;object-fit:cover;opacity:.55;transition:opacity .4s}
 #shade{position:fixed;inset:0;z-index:-2;pointer-events:none;
   background:radial-gradient(ellipse at 50% 40%,rgba(7,3,4,.15),rgba(7,3,4,.85) 75%),linear-gradient(rgba(7,3,4,var(--dim,.25)),rgba(7,3,4,var(--dim,.25)))}
 #embers{position:fixed;inset:0;z-index:-1;pointer-events:none}
 .progress{position:fixed;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--red-d),var(--red));box-shadow:0 0 12px var(--red);z-index:50}
 
-/* ---------- entry gate ---------- */
-#gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;text-align:center;background:#050102 url(assets/poster.jpg) center/cover;transition:opacity 1s,visibility 1s}
-#gate::before{content:"";position:absolute;inset:0;background:rgba(5,1,2,.72)}
-#gate>div{position:relative;padding:24px}
-#gate .rune{width:120px;height:120px;margin:0 auto 28px;border:1px solid var(--red);border-radius:50%;display:grid;place-items:center;
-  box-shadow:0 0 40px rgba(255,45,61,.45),inset 0 0 30px rgba(255,45,61,.3);animation:spin 18s linear infinite}
-#gate .rune span{font-size:44px;color:var(--red);animation:spin 18s linear infinite reverse}
-#gate h1{font-family:Cinzel,serif;font-size:clamp(28px,5vw,44px);letter-spacing:.18em;font-weight:500}
-#gate p{color:var(--muted);margin:10px 0 30px;font-size:14px;letter-spacing:.08em}
-#gate.hide{opacity:0;visibility:hidden}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* just a comment */
@@ -54,9 +42,6 @@ nav{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:40;displ
 nav .logo{color:var(--red);font-size:18px;margin-right:8px;text-shadow:0 0 12px var(--red)}
 nav a.l{padding:7px 14px;font-size:13px;border-radius:999px;color:var(--muted);transition:.25s;white-space:nowrap}
 nav a.l:hover,nav a.l.on{color:#fff;background:rgba(255,45,61,.2)}
-#snd{margin-left:6px;width:36px;height:36px;border-radius:50%;border:1px solid var(--glass-b);background:transparent;color:var(--ink);cursor:pointer;font-size:15px;transition:.25s}
-#snd:hover{border-color:var(--red)}
-#snd.off{opacity:.5}
 @media(max-width:720px){nav a.l{display:none}nav a.l.keep{display:inline-block}}
 
 /* ---------- layout ---------- */
@@ -152,25 +137,12 @@ footer{text-align:center;padding:40px 20px 50px;color:var(--muted);font-size:12p
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 </style>
 </head>
-<body class="locked">
+<body>
 
-<!-- Entry gate: browsers block autoplay audio, so a click starts the sound -->
-<div id="gate">
-  <div>
-    <div class="rune"><span>✦</span></div>
-    <h1>KARTHIKEYAN</h1>
-    <p>Best experienced with sound on</p>
-    <button class="btn" id="enter">Enter with sound</button>
-    <br><br>
-    <button class="btn ghost" id="enterQuiet" style="padding:10px 22px;font-size:11px">Enter silently</button>
-  </div>
-</div>
-
-<div id="bg"><video id="vid" muted loop playsinline preload="auto" poster="assets/poster.jpg"><source src="assets/bg.mp4" type="video/mp4"></video></div>
+<div id="bg"></div>
 <div id="shade"></div>
 <canvas id="embers"></canvas>
 <div class="progress" id="bar"></div>
-<audio id="voice" src="assets/voice.mp3" loop preload="auto"></audio>
 
 <nav>
   <span class="logo">✦</span>
@@ -180,7 +152,6 @@ footer{text-align:center;padding:40px 20px 50px;color:var(--muted);font-size:12p
   <a class="l" href="#projects">Projects</a>
   <a class="l" href="#journey">Journey</a>
   <a class="l keep" href="#contact">Contact</a>
-  <button id="snd" title="Toggle sound" aria-label="Toggle sound">🔊</button>
 </nav>
 
 <main>
@@ -278,31 +249,17 @@ footer{text-align:center;padding:40px 20px 50px;color:var(--muted);font-size:12p
 <script>
 (function(){
   const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-  const vid=$('#vid'), voice=$('#voice'), snd=$('#snd'), gate=$('#gate'), card=$('#card');
+  const card=$('#card');
   $('#yr').textContent=new Date().getFullYear();
-  let soundOn=false;
+  card.classList.add('go');
+  setInterval(()=>{card.classList.remove('go');void card.offsetWidth;card.classList.add('go')},9000);
 
-  function setSound(on){
-    soundOn=on; snd.textContent=on?'🔊':'🔇'; snd.classList.toggle('off',!on);
-    if(on){ voice.volume=.85; voice.play().catch(()=>{}); } else voice.pause();
-  }
-  function enter(withSound){
-    gate.classList.add('hide'); document.body.classList.remove('locked');
-    vid.play().catch(()=>{}); setSound(withSound);
-    card.classList.add('go'); setInterval(()=>{card.classList.remove('go');void card.offsetWidth;card.classList.add('go')},9000);
-  }
-  $('#enter').onclick=()=>enter(true);
-  $('#enterQuiet').onclick=()=>enter(false);
-  snd.onclick=()=>setSound(!soundOn);
-  document.addEventListener('visibilitychange',()=>{ if(document.hidden) voice.pause(); else if(soundOn) voice.play().catch(()=>{}); });
-
-  // scroll: progress bar, background dimming (text sections get darker), active nav
+  // Scroll progress, background dimming, and active navigation.
   const bar=$('#bar'), links=$$('nav a.l'), secs=$$('section');
   function onScroll(){
     const h=document.documentElement, p=h.scrollTop/(h.scrollHeight-h.clientHeight);
     bar.style.width=(p*100)+'%';
     document.documentElement.style.setProperty('--dim', Math.min(.55, .15+p*.6));
-    vid.style.transform='scale('+(1+p*.12)+')';
     let cur=secs[0].id; secs.forEach(s=>{ if(s.getBoundingClientRect().top<innerHeight*.5) cur=s.id; });
     links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));
   }
